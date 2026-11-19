@@ -26,7 +26,9 @@ function doGet() {
   'use strict';
   var origin = ${JSON.stringify(trustedOrigin)};
   var permitted = ['requestLoginCode','verifyLoginCode','getAvailability',
-      'getMyCredits','getMyBookings','makeBooking','rescheduleBooking','cancelBooking'];
+      'getMyCredits','getMyBookings','makeBooking','rescheduleBooking','cancelBooking',
+      'requestAdminCode','verifyAdminCode','adminGetData','adminSaveClient','adminGrantCredits',
+      'adminAddCalendar','adminSetCalendarEnabled'];
   function send(message) { window.top.postMessage(Object.assign({channel:'coach-aimi-api'},message),origin); }
   window.addEventListener('message',function(event){
     if (event.origin !== origin || event.source !== window.top) return;
@@ -148,6 +150,177 @@ function auditBookings_() {
     MailApp.sendEmail({to: settings_().CoachEmail, subject: 'Coach Aimi: calendar sync audit needs attention',
       body: issues.slice(0, 100).join('\n'), name: 'Coach Aimi Booking'});
   }
+}
+
+
+/**
+ * Coach administration. Visitors never choose an admin email address: the OTP is sent
+ * only to CoachEmail from the private Settings sheet. No admin passwords/tokens go
+ * into public GitHub Pages files.
+ */
+function requestAdminCode() {
+  const email = String(settings_().CoachEmail || '').trim();
+  if (!/^\\S+@\\S+\\.\\S+$/.test(email)) throw new Error('Set CoachEmail in the Settings sheet first.');
+  const cache = CacheService.getScriptCache();
+  const limiter = 'admin-rate';
+  const hits = Number(cache.get(limiter) || 0);
+  if (hits >= 3) return {message: 'If coach login is available, a code has been requested. Try again later if needed.'};
+  cache.put(limiter, String(hits + 1), 900);
+  const code = String(parseInt(Utilities.getUuid().replace(/-/g, '').slice(0, 8), 16) % 1000000).padStart(6, '0');
+  cache.put('admin-otp', JSON.stringify({hash: hash_('coach-admin:' + code), attempts: 0}), 300);
+  MailApp.sendEmail({
+    to: email,
+    subject: 'Coach Aimi — admin login code',
+    body: 'Your Coach Admin sign-in code is ' + code + '. It expires in 5 minutes. Never share it.\\n\\nIf you did not request this, ignore this email.',
+    name: 'Coach Aimi Booking', replyTo: String(settings_().ReplyToEmail || email)
+  });
+  return {message: 'A 6-digit login code was sent to your coach notification email.'};
+}
+
+function verifyAdminCode(inputCode) {
+  const cache = CacheService.getScriptCache();
+  const stored = cache.get('admin-otp');
+  if (!stored || !/^\\d{6}$/.test(String(inputCode))) throw new Error('Invalid or expired admin code.');
+  const record = JSON.parse(stored);
+  if (record.attempts >= 5) {cache.remove('admin-otp'); throw new Error('Too many attempts. Request a new code later.');}
+  if (record.hash !== hash_('coach-admin:' + String(inputCode))) {
+    record.attempts++;
+    if (record.attempts >= 5) cache.remove('admin-otp');
+    else cache.put('admin-otp', JSON.stringify(record), 300);
+    throw new Error('Invalid or expired admin code.');
+  }
+  cache.remove('admin-otp');
+  const token = Utilities.getUuid().replace(/-/g, '') + Utilities.getUuid().replace(/-/g, '');
+  cache.put('admin-session-' + hash_(token).slice(0, 48), 'coach', 21600);
+  return {token, email: settings_().CoachEmail};
+}
+
+function requireAdmin_(token) {
+  if (typeof token !== 'string' || !/^[0-9a-f]{64}$/i.test(token) ||
+      CacheService.getScriptCache().get('admin-session-' + hash_(token).slice(0, 48)) !== 'coach')
+    throw new Error('Admin session expired. Please sign in again.');
+}
+
+function adminGetData(token) {
+  requireAdmin_(token);
+  const bookedByPhone = {};
+  bookingRows_().forEach(b => {
+    if (b.status === 'CONFIRMED') bookedByPhone[b.phone] = (bookedByPhone[b.phone] || 0) + 1;
+  });
+  const clients = values_(APP.CLIENTS).filter(r => r[2]).map(r => {
+    const phone = normalizePhone_(r[2]);
+    const granted = Number(r[4]) || 0;
+    const used = bookedByPhone[phone] || 0;
+    return {name: String(r[0]), email: String(r[1]), phone,
+      active: enabled_(r[3]), creditsGranted: granted,
+      creditsUsed: used, remaining: Math.max(0, granted - used)};
+  });
+  const destinationId = String(settings_().BookingCalendarId || '');
+  const calendars = values_(APP.CALENDARS).filter(r => r[0]).map(r => ({
+    id: String(r[0]).trim(), label: String(r[1] || ''), enabled: enabled_(r[2])
+  }));
+  return {clients, calendars, destinationId, sheetUrl: spreadsheet_().getUrl(),
+    adminEmail: settings_().CoachEmail};
+}
+
+function adminSaveClient(token, data) {
+  requireAdmin_(token);
+  if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('Invalid client details.');
+  const name = String(data.name || '').trim();
+  const email = String(data.email || '').trim();
+  const phone = normalizePhone_(data.phone);
+  const active = data.active === true;
+  const initialCredits = Number(data.initialCredits || 0);
+  if (!name || name.length > 100 || /^[=+@-]/.test(name)) throw new Error('Enter a valid client name.');
+  if (email.length > 200 || !/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$/.test(email) || /^[=+@-]/.test(email))
+    throw new Error('Enter a valid client email.');
+  if (!Number.isSafeInteger(initialCredits) || initialCredits < 0 || initialCredits > 10000)
+    throw new Error('Starting credits must be between 0 and 10,000.');
+  const lock = LockService.getScriptLock();
+  lock.waitLock(25000);
+  try {
+    const sheet = tab_(APP.CLIENTS);
+    const rows = values_(APP.CLIENTS);
+    const indices = rows.map((r,i) => {try{return normalizePhone_(r[2]) === phone ? i + 2 : 0;}catch(_){return 0;}}).filter(Boolean);
+    if (indices.length > 1) throw new Error('Duplicate phone number in Clients sheet. Fix duplicates before editing.');
+    if (indices.length) {
+      const current = sheet.getRange(indices[0], 5).getValue();
+      sheet.getRange(indices[0], 1, 1, 4).setValues([[name,email,phone,active]]);
+      SpreadsheetApp.flush();
+      return {message:'Client details saved. Existing credits (' + current + ') were preserved.'};
+    }
+    sheet.appendRow([name,email,phone,active,initialCredits]);
+    SpreadsheetApp.flush();
+    return {message:'Client added with ' + initialCredits + ' starting credits.'};
+  } finally {lock.releaseLock();}
+}
+
+function adminGrantCredits(token, phoneInput, amountInput) {
+  requireAdmin_(token);
+  const phone = normalizePhone_(phoneInput);
+  const amount = Number(amountInput);
+  if (!Number.isSafeInteger(amount) || amount < 1 || amount > 1000)
+    throw new Error('Credit top-up must be 1–1,000 sessions.');
+  const lock = LockService.getScriptLock();
+  lock.waitLock(25000);
+  try {
+    const sheet = tab_(APP.CLIENTS);
+    const rows = values_(APP.CLIENTS);
+    const matches = rows.map((r,i) => {try{return normalizePhone_(r[2]) === phone ? i + 2 : 0;}catch(_){return 0;}}).filter(Boolean);
+    if (matches.length !== 1) throw new Error('Client not found or duplicate phone numbers detected.');
+    const old = Number(sheet.getRange(matches[0],5).getValue() || 0);
+    if (!Number.isSafeInteger(old) || old < 0 || old + amount > 100000)
+      throw new Error('Invalid existing credit value.');
+    sheet.getRange(matches[0],5).setValue(old + amount);
+    SpreadsheetApp.flush();
+    return {message: amount + ' credits added. Total granted: ' + (old + amount) + '.'};
+  } finally {lock.releaseLock();}
+}
+
+function adminAddCalendar(token, inputId, inputLabel) {
+  requireAdmin_(token);
+  const id = String(inputId || '').trim();
+  const label = String(inputLabel || '').trim();
+  if (!id || id.length > 254 || /\\s/.test(id) || !id.includes('@'))
+    throw new Error('Enter a valid Calendar ID. An email works for an accessible primary Google Calendar.');
+  if (label.length > 80 || /^[=+@-]/.test(label)) throw new Error('Enter a valid calendar label.');
+  const cal = CalendarApp.getCalendarById(id);
+  if (!cal) throw new Error('Cannot access this calendar. Share it with the Apps Script account and subscribe to it if needed. Secondary calendars require their exact Calendar ID.');
+  if (id === String(settings_().BookingCalendarId || '').trim())
+    return {message:'This is your booking destination and is already checked automatically.'};
+  const lock = LockService.getScriptLock();
+  lock.waitLock(25000);
+  try {
+    const sheet = tab_(APP.CALENDARS);
+    const rows = values_(APP.CALENDARS);
+    const existing = rows.findIndex(r => String(r[0]).trim() === id);
+    const name = label || cal.getName();
+    if (existing >= 0) sheet.getRange(existing+2,1,1,3).setValues([[id,name,true]]);
+    else sheet.appendRow([id,name,true]);
+    SpreadsheetApp.flush();
+    return {message:'Calendar added and enabled for busy-time checking: ' + name};
+  } finally {lock.releaseLock();}
+}
+
+function adminSetCalendarEnabled(token, inputId, enabledInput) {
+  requireAdmin_(token);
+  const id = String(inputId || '').trim();
+  if (!id || id === String(settings_().BookingCalendarId || '').trim())
+    throw new Error('The booking destination calendar cannot be disabled.');
+  const enabled = enabledInput === true;
+  if (enabled && !CalendarApp.getCalendarById(id))
+    throw new Error('This calendar is no longer accessible to the Apps Script account.');
+  const lock = LockService.getScriptLock();
+  lock.waitLock(25000);
+  try {
+    const sheet = tab_(APP.CALENDARS);
+    const rows = values_(APP.CALENDARS);
+    const index = rows.findIndex(r => String(r[0]).trim() === id);
+    if (index < 0) throw new Error('Calendar not found.');
+    sheet.getRange(index+2,3).setValue(enabled);
+    SpreadsheetApp.flush();
+    return {message: enabled ? 'Calendar enabled.' : 'Calendar disabled. Existing bookings remain unchanged.'};
+  } finally {lock.releaseLock();}
 }
 
 /** Public API: anonymous availability returns only available hours, never client data. */
