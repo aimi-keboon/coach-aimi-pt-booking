@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1715"><title>Coach Aimi | Personal Training</title>
+  <meta name="description" content="Book your one-hour personal training session with Coach Aimi. Flexible sessions synced with Google Calendar.">
+  <style>
+    :root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Arial,sans-serif;background:#0b1715;color:#f6fff3}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at 80% 20%,#235a44 0%,transparent 40%),#0b1715}
+    .wrap{max-width:1120px;padding:28px 24px;margin:auto}.top{display:flex;justify-content:space-between;align-items:center}.logo{font-weight:900;letter-spacing:-.8px}.logo span,.accent{color:#b9f774}.label{font-size:11px;color:#b5cbb8;letter-spacing:2px;text-transform:uppercase}
+    main{min-height:78vh;display:flex;align-items:center}.content{max-width:800px;padding:75px 0}h1{font-size:clamp(58px,12vw,132px);line-height:.88;letter-spacing:-.095em;margin:17px 0 27px;font-weight:900}.lead{font-size:18px;color:#abc4b4;max-width:500px;line-height:1.65}
+    .btn{margin-top:20px;display:inline-block;background:#b9f774;color:#142616;text-decoration:none;padding:20px 30px;border-radius:14px;font-weight:850;box-shadow:0 10px 40px #0003}.btn:hover{background:#dcffaf}
+    .details{display:flex;gap:36px;margin-top:58px;flex-wrap:wrap}.details div{border-left:1px solid #53765f;padding-left:15px}.details b{display:block;font-size:17px;margin-bottom:7px}.details small{font-size:12px;color:#9db5a7}footer{font-size:12px;color:#8ba593;padding-bottom:32px}
+    #setup{display:none;margin-top:24px;color:#fbe6a6;font-size:13px;max-width:500px;line-height:1.6}
+    @media(max-width:600px){.content{padding:55px 0}.details{gap:20px}h1{font-size:clamp(56px,14vw,81px)}.label{font-size:9px}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="top"><div class="logo">COACH <span>AIMI.</span></div><div class="label">PERSONAL TRAINING · MALAYSIA</div></header>
+    <main><div class="content"><div class="label accent">BUILD STRENGTH. BUILD CONSISTENCY.</div><h1>SHOW UP.<br><span class="accent">LEVEL UP.</span></h1>
+    <p class="lead">Your next chapter starts with one hour. Book a 1-on-1 personal training session with Coach Aimi and train with intention.</p>
+    <a id="book" class="btn" href="#">Book your session ↗</a><p id="setup">Booking is not connected yet. Coach Aimi: deploy the Apps Script web app and paste its /exec URL into the BOOKING_APP_URL setting in index.html.</p>
+    <div class="details"><div><b>60 MINUTES</b><small>Every training session</small></div><div><b>7 AM – 11 PM</b><small>Last session: 10–11 PM</small></div><div><b>YOUR SCHEDULE</b><small>See live availability</small></div></div></div></main>
+    <footer>© Coach Aimi · Malaysia (MYT) · Powered by Google Calendar.</footer>
+  </div>
+  <script>
+    const BOOKING_APP_URL = 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE';
+    const link = document.getElementById('book');
+    if (/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec(?:\?.*)?$/.test(BOOKING_APP_URL)) {
+      link.href = BOOKING_APP_URL;
+    } else {
+      link.addEventListener('click', event => {event.preventDefault();document.getElementById('setup').style.display='block';});
+    }
+  </script>
+</body>
+</html>
