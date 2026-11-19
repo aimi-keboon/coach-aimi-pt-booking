@@ -15,14 +15,14 @@
 
 - `index.html`: full responsive GitHub Pages booking app, including secure API bridge client.
 - `apps-script/Code.gs`: Google Calendar/Sheets/Email backend plus iframe messaging bridge. **Paste into Google Apps Script's `Code.gs`.**
-- `apps-script/appsscript.json`: timezone and runtime settings. **Paste into Apps Script's separate `appsscript.json` manifest file.**
+- **No JSON file to copy:** the backend already has `TZ: 'Asia/Kuala_Lumpur'` in `Code.gs`. The Apps Script editor manages its own hidden manifest automatically.
 
-**You do not create `Booking.html` inside Apps Script.** There are only two files in the Apps Script editor: `Code.gs` and `appsscript.json`.
+**You do not create `Booking.html` or `appsscript.json` inside Apps Script.** Only paste `Code.gs`. Google Apps Script maintains its own manifest automatically (hidden by default).
 
 ## Setup
 
 1. Log into [Google Apps Script](https://script.google.com) as the Google account that should execute bookings and email (you suggested `keboon@keboon.net`). Create a standalone project and paste `apps-script/Code.gs` into `Code.gs`.
-2. Under **Project Settings**, enable **Show `appsscript.json` manifest file in editor**. Open that separate manifest and paste `apps-script/appsscript.json`. Save.
+2. Open **Project Settings (gear icon) → Time zone** and choose **GMT+08:00 Kuala Lumpur / Asia/Kuala_Lumpur** (or a matching GMT+08:00 time zone). You do not need to show or edit `appsscript.json`. Make sure **Enable Chrome V8 runtime** is on.
 3. Select and run `setupProject_` in the Apps Script editor, authorize, and copy the Google Sheet URL from **Execution log**. Do not share this spreadsheet publicly.
 4. Add each client in the `Clients` tab. Enter phone numbers as **plain text** (e.g. `0123456789`) and positive whole-number `CreditsGranted` values. Do not delete past rows from `Bookings` because the credit balance depends on them.
 5. In `Settings`, leave `BookingCalendarId` set to `aimi@keboon.net` **only if that is the actual Google Calendar ID**. Confirm using **Google Calendar → Settings → [calendar] → Integrate calendar → Calendar ID**. In `Calendars`, enter all other calendars to check for conflicts with `Enabled` = TRUE. They need read access; destination needs permission to modify events. Do not enable the Malaysia holidays calendar unless you want holidays to block sessions.
@@ -52,4 +52,4 @@ A direct cross-origin `fetch` call to Apps Script's Google-hosted web app is not
 - **Could not reach booking service:** check Web App deployment (`Anyone`, `Execute as Me`), ensure `/exec` (not `/dev`), and test iframe permissions in browser.
 - **Calendar not accessible:** share the correct calendar with the executing Google account. It must be an editable owner/writer of the destination calendar and able to read each blocker.
 - **Email missing:** check MailApp authorization, quotas, spam folders, client email entry and whether the sender account is correctly configured.
-- **Date/time shifts:** both Apps Script project timezone and Google Sheets timezone should be Asia/Kuala_Lumpur.
+- **Date/time shifts:** set the Apps Script project timezone in Project Settings to GMT+08:00, and set the spreadsheet timezone to Malaysia (GMT+08:00).
