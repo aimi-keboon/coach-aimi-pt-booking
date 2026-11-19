@@ -1,7 +1,8 @@
 /**
  * Coach Aimi PT Booking — Google Apps Script backend
  * Deploy as a web app executing as the deployment owner.
- * Timezone: Asia/Kuala_Lumpur (also set this in appsscript.json).
+ * Timezone: Asia/Kuala_Lumpur; set project time zone to GMT+08:00 in Project Settings.
+ * Do not paste JSON into this file; Apps Script manages its own manifest.
  *
  * Admin-only editor actions end with _ so google.script.run can't invoke them.
  */
