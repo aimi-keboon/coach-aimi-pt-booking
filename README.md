@@ -14,6 +14,7 @@
 ## Project files
 
 - `index.html`: full responsive GitHub Pages booking app, including secure API bridge client.
+- `admin.html`: coach-only management page with email-code sign-in, add/edit clients, top up credits, and add/enable/disable busy-time calendars.
 - `apps-script/Code.gs`: Google Calendar/Sheets/Email backend plus iframe messaging bridge. **Paste into Google Apps Script's `Code.gs`.**
 - **No JSON file to copy:** the backend already has `TZ: 'Asia/Kuala_Lumpur'` in `Code.gs`. The Apps Script editor manages its own hidden manifest automatically.
 
@@ -53,3 +54,18 @@ A direct cross-origin `fetch` call to Apps Script's Google-hosted web app is not
 - **Calendar not accessible:** share the correct calendar with the executing Google account. It must be an editable owner/writer of the destination calendar and able to read each blocker.
 - **Email missing:** check MailApp authorization, quotas, spam folders, client email entry and whether the sender account is correctly configured.
 - **Date/time shifts:** set the Apps Script project timezone in Project Settings to GMT+08:00, and set the spreadsheet timezone to Malaysia (GMT+08:00).
+
+## Coach Admin dashboard
+
+- Open **https://aimi-keboon.github.io/coach-aimi-pt-booking/admin.html**.
+- Request the coach-only one-time sign-in code. It is sent to `CoachEmail` in the private Settings sheet (initially `aimi@keboon.net`).
+- Add a client with name, email, phone number, Active status, and starting credits. Updating the same phone number keeps existing credits.
+- For existing clients use **+ Add credits**. This adds to granted credits; spent credits remain counted in booking history.
+- Add extra availability calendars using their Calendar ID. An **email address can serve as the ID of a Google account's primary calendar** if the Apps Script executor already has access. For a secondary calendar copy its full Calendar ID from Google Calendar Settings → Integrate calendar.
+- In Google Calendar, **share the other calendar** with the executing Apps Script account (`keboon@keboon.net`, if that is the account you deployed under) with enough permissions to see busy events. Entering an email address does not itself share or authorize calendar access.
+- Enable or disable extra calendars from the admin page; **the booking destination (`aimi@keboon.net`) is always checked and remains the only calendar receiving new booking events**.
+- Do not share the private Sheets URL with clients. Public GitHub Pages files contain no passwords or admin client records.
+
+**After changing Code.gs:** Save it in the Apps Script editor, then go to **Deploy → Manage deployments → Edit (pencil) → Version: New version → Deploy**. Without redeploying, the /exec endpoint continues using the old code. The admin page will fail until the updated backend is deployed. Use the existing /exec URL for the new version.
+
+**Security note:** This uses email OTP and a six-hour server-side admin session; never put a static admin password in a public GitHub Pages file. Treat the coach email inbox as sensitive because possession of a code allows administrative access. Test the iframe communication on your actual deployed GitHub Pages site before going live.
