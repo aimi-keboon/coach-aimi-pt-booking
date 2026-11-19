@@ -23,10 +23,10 @@
 
 1. Log into [Google Apps Script](https://script.google.com) as the Google account that should execute bookings and email (you suggested `keboon@keboon.net`). Create a standalone project and paste `apps-script/Code.gs` into `Code.gs`.
 2. Open **Project Settings (gear icon) → Time zone** and choose **GMT+08:00 Kuala Lumpur / Asia/Kuala_Lumpur** (or a matching GMT+08:00 time zone). You do not need to show or edit `appsscript.json`. Make sure **Enable Chrome V8 runtime** is on.
-3. Select and run `setupProject_` in the Apps Script editor, authorize, and copy the Google Sheet URL from **Execution log**. Do not share this spreadsheet publicly.
+3. Save `Code.gs`; select **`setupProject`** (without `_`) from the Apps Script Run dropdown, click **Run**, authorize, and copy the Google Sheet URL from **Execution log**. Do not share this spreadsheet publicly.
 4. Add each client in the `Clients` tab. Enter phone numbers as **plain text** (e.g. `0123456789`) and positive whole-number `CreditsGranted` values. Do not delete past rows from `Bookings` because the credit balance depends on them.
 5. In `Settings`, leave `BookingCalendarId` set to `aimi@keboon.net` **only if that is the actual Google Calendar ID**. Confirm using **Google Calendar → Settings → [calendar] → Integrate calendar → Calendar ID**. In `Calendars`, enter all other calendars to check for conflicts with `Enabled` = TRUE. They need read access; destination needs permission to modify events. Do not enable the Malaysia holidays calendar unless you want holidays to block sessions.
-6. Run `checkSetup_` in Apps Script and confirm you can access all calendars.
+6. Run `checkSetup` in Apps Script and confirm you can access all calendars.
 7. **Deploy → New deployment → Web app → Execute as: Me → Who has access: Anyone.** Save/copy the final `/exec` URL. Confirm your Workspace policy allows anonymous web app use. Anyone only gains access to the *public* actions; booking details remain behind registered-phone email OTP verification.
 8. Edit `index.html` on GitHub: replace `PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE` with the Apps Script `/exec` URL. Do not paste the URL into `Code.gs`.
 9. On GitHub, go to repository **Settings → Pages → Build and deployment → Deploy from branch → main / (root)**. Open the resulting GitHub Pages site and test sign-in, booking, rescheduling, cancellation, calendar conflicts, credits, and both email notifications using a test client.
