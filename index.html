@@ -26,20 +26,45 @@
     .split{display:grid;grid-template-columns:1fr 260px;gap:25px}.summary{background:#eaf3e4;padding:23px;border-radius:16px;align-self:start}.summary small{font-size:10px;letter-spacing:1.4px;color:#658265;font-weight:800;text-transform:uppercase}.summary b{display:block;font-size:20px;letter-spacing:-.7px;margin:12px 0}.summary p{font-size:12px;color:#647563;line-height:1.6}.summary .primary{width:100%;margin-top:12px;font-size:12px;padding:14px}
     .bookcard{border:1px solid #dfe7db;background:#fff;border-radius:15px;padding:19px;margin-bottom:11px;display:flex;justify-content:space-between;align-items:center;gap:15px}.bookcard strong{display:block;font-size:15px;margin:6px 0}.bookcard small{color:#6b806e}.pill{display:inline-block;font-size:10px;padding:5px 8px;border-radius:50px;color:#476f34;background:#edf8e5;font-weight:800;letter-spacing:.3px}.pill.cancelled{color:#8e5454;background:#f9eaea}.actions{display:flex;gap:7px;flex-wrap:wrap}
     .muted{color:#8d9f8d}.hidden{display:none!important}.footer{display:flex;align-items:center;justify-content:space-between;gap:15px;color:#7e9987;font-size:11px;margin:27px 4px 0}.footer span{color:#c0e5bd}
+    /* Simple login-first homepage. Full-width session dashboard only after client sign-in. */
+    .compact-hero{padding:55px 0 24px;display:block;text-align:center}
+    .compact-hero h1{font-size:clamp(31px,5vw,46px);line-height:1.15;letter-spacing:-.05em;max-width:none}
+    .compact-hero .desc{font-size:14px;max-width:none;margin:11px 0 0;color:#b4cabb}
+    .shell{max-width:680px;margin:0 auto}
+    body.client-active .shell{max-width:1060px}
+    .loginselect{padding:34px 30px 36px}
+    .loginselect h2{margin:0 0 8px}
+    .loginselect .sub{margin-bottom:22px}
+    .loginchoices{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+    .loginchoice{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;text-decoration:none;text-align:left;min-height:118px;padding:22px;border-radius:15px;border:1px solid #dce6d7;background:#fff;color:#223a2b}
+    .loginchoice strong{font-size:18px;letter-spacing:-.3px}
+    .loginchoice span{font-size:12px;line-height:1.5;color:#6c806f;margin-top:9px;font-weight:400}
+    .loginchoice.client{background:#dff5cd;border-color:#a9dc86}
+    .loginchoice:hover,.loginchoice:focus-visible{outline:2px solid #82ba5c;outline-offset:1px}
+    .backlogin{margin-top:16px;background:transparent;color:#365d3b;padding:8px 0;text-decoration:underline;font-size:12px}
+    @media(max-width:580px){.compact-hero{padding:35px 8px 22px}.compact-hero h1{font-size:34px}.loginselect{padding:24px 20px}.loginchoices{grid-template-columns:1fr}.loginchoice{min-height:98px}}
     @media(max-width:740px){.wrap{padding:18px 13px 50px}.hero{display:block;padding:53px 8px 26px}.desc{max-width:100%;margin-top:22px}.tag{font-size:9px}.shellhead{padding:21px}.shellbody,.panel{padding:20px}.tabnav{padding:0 16px}.split,.grid{grid-template-columns:1fr}.slotgrid{grid-template-columns:repeat(2,1fr)}.bookcard{align-items:flex-start;flex-direction:column}.footer{align-items:flex-start;flex-direction:column}h1{font-size:clamp(48px,13vw,65px)}}
   </style>
 </head>
 <body>
 <div class="wrap">
-  <header class="top"><div class="logo">COACH<span> AIMI.</span></div><div class="tag">PERSONAL TRAINING · MALAYSIA</div></header>
-  <section class="hero"><div><p class="eyebrow">Progress starts with one hour</p><h1>SHOW UP.<br><em>LEVEL UP.</em></h1></div><p class="desc">Your strength journey, one session at a time. Find a free hour, reserve your spot, and train with Coach Aimi.</p></section>
+  <header class="top"><div class="logo">COACH<span> AIMI.</span></div><div class="tag">PT BOOKING</div></header>
+  <section class="hero compact-hero"><h1>Personal training bookings</h1><p class="desc">Book or manage your 1-hour sessions with Coach Aimi.</p></section>
   <main class="shell">
-    <div class="shellhead"><div><strong>Book your PT session</strong><small>1 hour · 7:00 AM – 11:00 PM · Malaysia time</small></div><span class="step" id="stepLabel">CLIENT SIGN IN</span></div>
+    <section id="loginSelect" class="loginselect">
+      <h2>Log in</h2><p class="sub">Choose how you'd like to use the app.</p>
+      <div class="loginchoices">
+        <button class="loginchoice client" id="clientLogin" type="button"><strong>Client login →</strong><span>Book a session, see credits and manage bookings.</span></button>
+        <a class="loginchoice" href="./admin.html"><strong>Coach login →</strong><span>Manage clients, credits and calendars.</span></a>
+      </div>
+    </section>
+    <div class="shellhead hidden" id="clientShellHead"><div><strong>Book your PT session</strong><small>1 hour · 7:00 AM – 11:00 PM · Malaysia time</small></div><span class="step" id="stepLabel">CLIENT SIGN IN</span></div>
     <div id="message" class="notice hidden" role="status" aria-live="polite"></div>
-    <section class="shellbody" id="phoneView">
+    <section class="shellbody hidden" id="phoneView">
       <div class="grid"><div><h2>Welcome back.</h2><p class="sub">Enter the phone number Coach Aimi has on file. We'll send a one-time verification code to your registered email.</p></div>
       <form id="phoneForm"><label class="field" for="phone">Your mobile number<input id="phone" type="tel" autocomplete="tel" placeholder="e.g. 0123456789" required></label><button class="primary" id="sendCode" type="submit">Send email code →</button></form></div>
-      <p class="hint">New to Coach Aimi? Ask your coach to add your name, email and phone to the client list first. Phone number alone never reveals private bookings.</p>
+      <p class="hint">New client? Ask Coach Aimi to add your details first.</p>
+      <button id="backToLogins" type="button" class="backlogin">← Back to login options</button>
     </section>
     <section class="shellbody hidden" id="codeView">
       <h2>Check your inbox.</h2><p class="sub">Enter the 6-digit code sent to the email registered with your number. It expires after 5 minutes.</p>
@@ -59,7 +84,7 @@
       <div class="panel hidden" id="myPanel"><h2>Your sessions.</h2><p class="sub">You may reschedule or cancel only when the session starts at least 24 hours from now.</p><div id="myBookings"></div></div>
     </section>
   </main>
-  <footer class="footer"><div>© Coach Aimi · Train with intention.</div><div><span>●</span> Asia/Kuala_Lumpur · Bookings are subject to calendar availability.</div></footer>
+  <footer class="footer"><div>Coach Aimi · PT bookings</div><div>Malaysia time (MYT)</div></footer>
 </div>
 <script>
   'use strict';
@@ -113,7 +138,9 @@
   });}
   function msg(text, error=false){const el=$('message');el.textContent=text;el.classList.remove('hidden');el.classList.toggle('error',error);el.scrollIntoView({block:'nearest',behavior:'smooth'});}
   function clearMsg(){$('message').classList.add('hidden');}
-  function show(view){['phoneView','codeView','dashboard'].forEach(id=>$(id).classList.toggle('hidden',id!==view));$('stepLabel').textContent=view==='dashboard'?'MY TRAINING':view==='codeView'?'EMAIL VERIFICATION':'CLIENT SIGN IN';clearMsg();}
+  function show(view){['loginSelect','phoneView','codeView','dashboard'].forEach(id=>$(id).classList.toggle('hidden',id!==view));$('clientShellHead').classList.toggle('hidden',view==='loginSelect');document.body.classList.toggle('client-active',view==='dashboard');$('stepLabel').textContent=view==='dashboard'?'MY TRAINING':view==='codeView'?'EMAIL VERIFICATION':'CLIENT SIGN IN';clearMsg();}
+  $('clientLogin').addEventListener('click',()=>{show('phoneView');$('phone').focus();});
+  $('backToLogins').addEventListener('click',()=>show('loginSelect'));
   function loading(bool){state.working=bool;['sendCode','verifyCode'].forEach(id=>$(id).disabled=bool);refreshSummary();}
   function todayMY(){const parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Kuala_Lumpur',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());const get=t=>parts.find(x=>x.type===t).value;return get('year')+'-'+get('month')+'-'+get('day');}
   function dateAdd(d,n){const x=new Date(d+'T12:00:00Z');x.setUTCDate(x.getUTCDate()+n);return x.toISOString().slice(0,10);}
@@ -122,7 +149,7 @@
   $('phoneForm').addEventListener('submit',async e=>{e.preventDefault();loading(true);state.phone=$('phone').value.trim();try{const r=await call('requestLoginCode',state.phone);show('codeView');msg(r.message);}catch(err){msg(err.message,true);}finally{loading(false);}});
   $('backPhone').addEventListener('click',()=>show('phoneView'));
   $('codeForm').addEventListener('submit',async e=>{e.preventDefault();loading(true);try{const r=await call('verifyLoginCode',state.phone,$('code').value.trim());state.token=r.token;state.client=r.client;state.creditsRemaining=r.client.creditsRemaining;show('dashboard');renderCredits();$('welcome').textContent='Let’s train, '+r.client.name+'.';state.date=todayMY();$('date').min=state.date;$('date').max=dateAdd(state.date,60);$('date').value=state.date;await Promise.all([loadSlots(),loadBookings(),loadCredits()]);}catch(err){msg(err.message,true);}finally{loading(false);}});
-  $('signout').addEventListener('click',()=>{state.token='';state.client=null;state.editingId=null;state.hour=null;state.creditsRemaining=0;$('code').value='';show('phoneView');});
+  $('signout').addEventListener('click',()=>{state.token='';state.client=null;state.editingId=null;state.hour=null;state.creditsRemaining=0;$('code').value='';show('loginSelect');});
   async function loadCredits(){const r=await call('getMyCredits',state.token);state.creditsRemaining=r.remaining;renderCredits();refreshSummary();}
   function renderCredits(){$('creditCount').textContent=state.creditsRemaining;}
   function activateTab(which){$('bookTab').classList.toggle('active',which==='book');$('myTab').classList.toggle('active',which==='my');$('bookPanel').classList.toggle('hidden',which!=='book');$('myPanel').classList.toggle('hidden',which!=='my');clearMsg();}
