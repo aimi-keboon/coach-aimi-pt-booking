@@ -50,6 +50,16 @@ function doGet() {
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
+/** Editor Run menu entry point. The setup helper stays private to the web app. */
+function setupProject() {
+  return setupProject_();
+}
+
+/** Editor Run menu entry point to verify calendar access after setup. */
+function checkSetup() {
+  return checkSetup_();
+}
+
 /** RUN ONCE IN APPS SCRIPT EDITOR. A spreadsheet link appears in execution logs. */
 function setupProject_() {
   const props = PropertiesService.getScriptProperties();
