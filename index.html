@@ -1,36 +1,140 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0b1715"><title>Coach Aimi | Personal Training</title>
-  <meta name="description" content="Book your one-hour personal training session with Coach Aimi. Flexible sessions synced with Google Calendar.">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1715">
+  <title>Coach Aimi — Book a Personal Training Session</title>
   <style>
-    :root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Arial,sans-serif;background:#0b1715;color:#f6fff3}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at 80% 20%,#235a44 0%,transparent 40%),#0b1715}
-    .wrap{max-width:1120px;padding:28px 24px;margin:auto}.top{display:flex;justify-content:space-between;align-items:center}.logo{font-weight:900;letter-spacing:-.8px}.logo span,.accent{color:#b9f774}.label{font-size:11px;color:#b5cbb8;letter-spacing:2px;text-transform:uppercase}
-    main{min-height:78vh;display:flex;align-items:center}.content{max-width:800px;padding:75px 0}h1{font-size:clamp(58px,12vw,132px);line-height:.88;letter-spacing:-.095em;margin:17px 0 27px;font-weight:900}.lead{font-size:18px;color:#abc4b4;max-width:500px;line-height:1.65}
-    .btn{margin-top:20px;display:inline-block;background:#b9f774;color:#142616;text-decoration:none;padding:20px 30px;border-radius:14px;font-weight:850;box-shadow:0 10px 40px #0003}.btn:hover{background:#dcffaf}
-    .details{display:flex;gap:36px;margin-top:58px;flex-wrap:wrap}.details div{border-left:1px solid #53765f;padding-left:15px}.details b{display:block;font-size:17px;margin-bottom:7px}.details small{font-size:12px;color:#9db5a7}footer{font-size:12px;color:#8ba593;padding-bottom:32px}
-    #setup{display:none;margin-top:24px;color:#fbe6a6;font-size:13px;max-width:500px;line-height:1.6}
-    @media(max-width:600px){.content{padding:55px 0}.details{gap:20px}h1{font-size:clamp(56px,14vw,81px)}.label{font-size:9px}}
+    :root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;color:#eff6ed;background:#0b1715;font-synthesis:none}
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse 75% 45% at 85% 4%,#225b45 0%,transparent 65%),#0b1715}
+    button,input{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.5}
+    .wrap{max-width:1060px;margin:0 auto;padding:26px 22px 76px}.top{display:flex;align-items:center;justify-content:space-between;gap:14px}
+    .logo{font-size:17px;font-weight:800;letter-spacing:-.7px}.logo span{color:#b8fb69}.tag{border:1px solid #3c5b4a;border-radius:100px;padding:9px 12px;font-size:11px;letter-spacing:1.1px;text-transform:uppercase;color:#bee1cb}
+    .hero{padding:66px 0 36px;display:grid;grid-template-columns:1.4fr .6fr;gap:20px;align-items:end}.eyebrow{font-size:11px;letter-spacing:2.8px;text-transform:uppercase;color:#b8fb69;font-weight:800;margin:0 0 18px}
+    h1{font-size:clamp(44px,8vw,86px);letter-spacing:-.085em;line-height:.97;max-width:740px;margin:0;font-weight:850}h1 em{font-style:normal;color:#b8fb69}
+    .desc{line-height:1.65;color:#abc2b4;font-size:14px;max-width:280px;margin-bottom:9px}.shell{background:#f8faf4;color:#18261f;border-radius:24px;box-shadow:0 18px 80px #0005;overflow:hidden}
+    .shellhead{display:flex;align-items:center;justify-content:space-between;padding:26px 30px;border-bottom:1px solid #e2e8df}.shellhead strong{font-size:17px;letter-spacing:-.5px}.shellhead small{display:block;color:#788579;margin-top:4px;font-size:12px}
+    .step{font-size:11px;border-radius:100px;background:#e8f1dc;color:#416624;padding:9px 12px;font-weight:700}.shellbody{padding:30px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}.field{display:block;margin:0 0 16px;font-size:12px;color:#4f6053;font-weight:700}.field input{display:block;width:100%;height:52px;border:1px solid #d9e2d7;border-radius:12px;margin-top:9px;padding:0 14px;background:#fff;color:#172a20;outline:none}.field input:focus{border-color:#759f4d;box-shadow:0 0 0 3px #cdeba955}
+    .primary{display:inline-flex;align-items:center;justify-content:center;gap:9px;border:0;background:#b9f774;color:#142817;border-radius:12px;padding:16px 22px;font-weight:800;min-height:50px}.primary:hover:enabled{background:#a4eb5b}.secondary{background:#f0f4ed;border:1px solid #e1e8dd;color:#294332;border-radius:12px;padding:12px 17px;font-weight:700}
+    .hint{color:#768476;font-size:12px;line-height:1.6}.notice{border:1px solid #cce6ac;background:#f0fbe5;color:#3b5d23;border-radius:12px;padding:14px 16px;font-size:12px;line-height:1.6;margin:18px 0}
+    .error{border-color:#efc3c3;background:#fff0f0;color:#9c3838}.tabnav{display:flex;border-bottom:1px solid #dce5db;gap:7px;padding:0 30px}.tab{border:0;background:transparent;padding:19px 13px;font-weight:700;color:#7a877b;border-bottom:3px solid transparent}.tab.active{color:#284d2a;border-color:#84be52}.panel{padding:29px 30px 33px}
+    h2{font-size:24px;letter-spacing:-.9px;margin:0 0 7px}.sub{font-size:12px;line-height:1.6;color:#758578;margin:0 0 22px}.daybar{display:flex;gap:7px;overflow-x:auto;padding-bottom:7px;margin:0 0 20px}
+    .day{min-width:81px;border:1px solid #dfe7dc;border-radius:13px;background:white;padding:11px 7px;display:flex;align-items:center;flex-direction:column;gap:6px;color:#354b38}.day.active{border-color:#4b8f51;background:#e8f7db}.day b{font-size:18px}.day span{font-size:11px}
+    .slotgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0 22px}.slot{background:white;border:1px solid #dbe6d8;padding:15px 7px;font-weight:700;color:#294531;border-radius:12px;font-size:12px}.slot.active{border:2px solid #479547;background:#e9f9d6;padding:14px 6px}
+    .split{display:grid;grid-template-columns:1fr 260px;gap:25px}.summary{background:#eaf3e4;padding:23px;border-radius:16px;align-self:start}.summary small{font-size:10px;letter-spacing:1.4px;color:#658265;font-weight:800;text-transform:uppercase}.summary b{display:block;font-size:20px;letter-spacing:-.7px;margin:12px 0}.summary p{font-size:12px;color:#647563;line-height:1.6}.summary .primary{width:100%;margin-top:12px;font-size:12px;padding:14px}
+    .bookcard{border:1px solid #dfe7db;background:#fff;border-radius:15px;padding:19px;margin-bottom:11px;display:flex;justify-content:space-between;align-items:center;gap:15px}.bookcard strong{display:block;font-size:15px;margin:6px 0}.bookcard small{color:#6b806e}.pill{display:inline-block;font-size:10px;padding:5px 8px;border-radius:50px;color:#476f34;background:#edf8e5;font-weight:800;letter-spacing:.3px}.pill.cancelled{color:#8e5454;background:#f9eaea}.actions{display:flex;gap:7px;flex-wrap:wrap}
+    .muted{color:#8d9f8d}.hidden{display:none!important}.footer{display:flex;align-items:center;justify-content:space-between;gap:15px;color:#7e9987;font-size:11px;margin:27px 4px 0}.footer span{color:#c0e5bd}
+    @media(max-width:740px){.wrap{padding:18px 13px 50px}.hero{display:block;padding:53px 8px 26px}.desc{max-width:100%;margin-top:22px}.tag{font-size:9px}.shellhead{padding:21px}.shellbody,.panel{padding:20px}.tabnav{padding:0 16px}.split,.grid{grid-template-columns:1fr}.slotgrid{grid-template-columns:repeat(2,1fr)}.bookcard{align-items:flex-start;flex-direction:column}.footer{align-items:flex-start;flex-direction:column}h1{font-size:clamp(48px,13vw,65px)}}
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <header class="top"><div class="logo">COACH <span>AIMI.</span></div><div class="label">PERSONAL TRAINING · MALAYSIA</div></header>
-    <main><div class="content"><div class="label accent">BUILD STRENGTH. BUILD CONSISTENCY.</div><h1>SHOW UP.<br><span class="accent">LEVEL UP.</span></h1>
-    <p class="lead">Your next chapter starts with one hour. Book a 1-on-1 personal training session with Coach Aimi and train with intention.</p>
-    <a id="book" class="btn" href="#">Book your session ↗</a><p id="setup">Booking is not connected yet. Coach Aimi: deploy the Apps Script web app and paste its /exec URL into the BOOKING_APP_URL setting in index.html.</p>
-    <div class="details"><div><b>60 MINUTES</b><small>Every training session</small></div><div><b>7 AM – 11 PM</b><small>Last session: 10–11 PM</small></div><div><b>YOUR SCHEDULE</b><small>See live availability</small></div></div></div></main>
-    <footer>© Coach Aimi · Malaysia (MYT) · Powered by Google Calendar.</footer>
-  </div>
-  <script>
-    const BOOKING_APP_URL = 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE';
-    const link = document.getElementById('book');
-    if (/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec(?:\?.*)?$/.test(BOOKING_APP_URL)) {
-      link.href = BOOKING_APP_URL;
-    } else {
-      link.addEventListener('click', event => {event.preventDefault();document.getElementById('setup').style.display='block';});
+<div class="wrap">
+  <header class="top"><div class="logo">COACH<span> AIMI.</span></div><div class="tag">PERSONAL TRAINING · MALAYSIA</div></header>
+  <section class="hero"><div><p class="eyebrow">Progress starts with one hour</p><h1>SHOW UP.<br><em>LEVEL UP.</em></h1></div><p class="desc">Your strength journey, one session at a time. Find a free hour, reserve your spot, and train with Coach Aimi.</p></section>
+  <main class="shell">
+    <div class="shellhead"><div><strong>Book your PT session</strong><small>1 hour · 7:00 AM – 11:00 PM · Malaysia time</small></div><span class="step" id="stepLabel">CLIENT SIGN IN</span></div>
+    <div id="message" class="notice hidden" role="status" aria-live="polite"></div>
+    <section class="shellbody" id="phoneView">
+      <div class="grid"><div><h2>Welcome back.</h2><p class="sub">Enter the phone number Coach Aimi has on file. We'll send a one-time verification code to your registered email.</p></div>
+      <form id="phoneForm"><label class="field" for="phone">Your mobile number<input id="phone" type="tel" autocomplete="tel" placeholder="e.g. 0123456789" required></label><button class="primary" id="sendCode" type="submit">Send email code →</button></form></div>
+      <p class="hint">New to Coach Aimi? Ask your coach to add your name, email and phone to the client list first. Phone number alone never reveals private bookings.</p>
+    </section>
+    <section class="shellbody hidden" id="codeView">
+      <h2>Check your inbox.</h2><p class="sub">Enter the 6-digit code sent to the email registered with your number. It expires after 5 minutes.</p>
+      <form id="codeForm"><label class="field" for="code">Verification code<input id="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" placeholder="••••••" required></label>
+      <button id="verifyCode" class="primary" type="submit">Verify & continue →</button> <button id="backPhone" type="button" class="secondary">Change number</button></form>
+    </section>
+    <section class="hidden" id="dashboard">
+      <div id="creditBanner" style="padding:17px 30px;background:#e9f7db;color:#25452d;font-size:14px" role="status" aria-live="polite"><strong id="creditCount">—</strong> session credits remaining <span style="font-size:12px;color:#56705c">· 1 credit per confirmed session. Cancellations at least 24h ahead return the credit.</span></div>
+      <nav class="tabnav"><button class="tab active" id="bookTab" type="button">Book a session</button><button class="tab" id="myTab" type="button">My bookings</button><button class="tab" id="signout" type="button" style="margin-left:auto">Sign out</button></nav>
+      <div class="panel" id="bookPanel">
+        <h2 id="welcome">Choose your training hour.</h2><p class="sub">Wednesday and Sunday are off by default. Your coach can change working days anytime.</p>
+        <div class="split"><div><label class="field" for="date">Training date<input id="date" type="date" required></label>
+          <div class="daybar" id="daybar" aria-label="Upcoming days"></div>
+          <p class="sub" style="margin:0 0 6px">Available one-hour sessions</p><div class="slotgrid" id="slots"></div><p id="slotStatus" class="hint"></p></div>
+          <aside class="summary"><small id="summaryEyebrow">YOUR SESSION</small><b id="selectedTime">Select a time</b><p id="selectedDate">Choose a date and an available hour to confirm.</p><p>Coach Aimi checks all enabled calendars for busy times. Your booking is saved only to her PT calendar.</p><p>Each confirmed session uses 1 credit.</p><button class="primary" id="confirmBooking" type="button" disabled>Confirm booking →</button><button class="secondary hidden" id="stopEdit" style="width:100%;margin-top:9px" type="button">Back to new booking</button></aside></div>
+      </div>
+      <div class="panel hidden" id="myPanel"><h2>Your sessions.</h2><p class="sub">You may reschedule or cancel only when the session starts at least 24 hours from now.</p><div id="myBookings"></div></div>
+    </section>
+  </main>
+  <footer class="footer"><div>© Coach Aimi · Train with intention.</div><div><span>●</span> Asia/Kuala_Lumpur · Bookings are subject to calendar availability.</div></footer>
+</div>
+<script>
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const state = {phone:'', token:'', client:null, date:'', hour:null, editingId:null, creditsRemaining:0, working:false};
+  // GitHub Pages owns the UI; Apps Script only runs the business logic.
+  // After deployment, paste your Apps Script /exec URL here. No secrets or client data.
+  const APPS_SCRIPT_URL = 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE';
+  const pending = new Map();
+  let bridgeWindow = null, bridgeOrigin = null;
+  let bridgeError = '';
+  const allowedApiOrigins = /^https:\/\/(?:script\.google\.com|(?:[a-z0-9-]+\.)*script\.googleusercontent\.com)$/i;
+  const validWebAppUrl = /^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec(?:\?.*)?$/i.test(APPS_SCRIPT_URL);
+  window.addEventListener('message', event => {
+    if (!allowedApiOrigins.test(event.origin) || !event.data || event.data.channel !== 'coach-aimi-api') return;
+    const d = event.data;
+    if (d.type === 'READY') {
+      bridgeWindow = event.source;
+      bridgeOrigin = event.origin;
+      for (const item of pending.values()) if (!item.sent) sendCall(item);
+    } else if (d.type === 'RESULT') {
+      const item = pending.get(d.id);
+      if (!item || event.source !== bridgeWindow || event.origin !== bridgeOrigin) return;
+      pending.delete(d.id);
+      clearTimeout(item.timer);
+      if (d.ok) item.resolve(d.value);
+      else item.reject(new Error(d.error || 'Booking service error.'));
     }
-  </script>
+  });
+  if (validWebAppUrl) {
+    const frame = document.createElement('iframe');
+    frame.src = APPS_SCRIPT_URL;
+    frame.style.cssText = 'position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;border:0';
+    frame.setAttribute('aria-hidden', 'true');
+    frame.setAttribute('title', 'Booking service connection');
+    document.body.appendChild(frame);
+  } else bridgeError = 'Coach Aimi: connect the Apps Script Web App URL in index.html first.';
+  function sendCall(item) {
+    if (!bridgeWindow || !bridgeOrigin) return;
+    item.sent = true;
+    bridgeWindow.postMessage({channel:'coach-aimi-site',type:'CALL',id:item.id,
+      action:item.name,args:item.args}, bridgeOrigin);
+  }
+  function call(name, ...args) {return new Promise((resolve,reject) => {
+    if (bridgeError) {reject(new Error(bridgeError));return;}
+    const id = (self.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()) + '-' + Math.random();
+    const item = {id,name,args,resolve,reject,sent:false};
+    item.timer = setTimeout(() => {pending.delete(id);reject(new Error('Could not reach the booking service. Check the Apps Script deployment and browser privacy settings.'));},30000);
+    pending.set(id,item);
+    sendCall(item);
+  });}
+  function msg(text, error=false){const el=$('message');el.textContent=text;el.classList.remove('hidden');el.classList.toggle('error',error);el.scrollIntoView({block:'nearest',behavior:'smooth'});}
+  function clearMsg(){$('message').classList.add('hidden');}
+  function show(view){['phoneView','codeView','dashboard'].forEach(id=>$(id).classList.toggle('hidden',id!==view));$('stepLabel').textContent=view==='dashboard'?'MY TRAINING':view==='codeView'?'EMAIL VERIFICATION':'CLIENT SIGN IN';clearMsg();}
+  function loading(bool){state.working=bool;['sendCode','verifyCode'].forEach(id=>$(id).disabled=bool);refreshSummary();}
+  function todayMY(){const parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Kuala_Lumpur',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());const get=t=>parts.find(x=>x.type===t).value;return get('year')+'-'+get('month')+'-'+get('day');}
+  function dateAdd(d,n){const x=new Date(d+'T12:00:00Z');x.setUTCDate(x.getUTCDate()+n);return x.toISOString().slice(0,10);}
+  function niceDate(d){return new Date(d+'T12:00:00Z').toLocaleDateString('en-MY',{weekday:'long',day:'numeric',month:'long',year:'numeric',timeZone:'UTC'});}
+  function fmtHour(h){return (h%12||12)+':00 '+(h<12?'AM':'PM');}
+  $('phoneForm').addEventListener('submit',async e=>{e.preventDefault();loading(true);state.phone=$('phone').value.trim();try{const r=await call('requestLoginCode',state.phone);show('codeView');msg(r.message);}catch(err){msg(err.message,true);}finally{loading(false);}});
+  $('backPhone').addEventListener('click',()=>show('phoneView'));
+  $('codeForm').addEventListener('submit',async e=>{e.preventDefault();loading(true);try{const r=await call('verifyLoginCode',state.phone,$('code').value.trim());state.token=r.token;state.client=r.client;state.creditsRemaining=r.client.creditsRemaining;show('dashboard');renderCredits();$('welcome').textContent='Let’s train, '+r.client.name+'.';state.date=todayMY();$('date').min=state.date;$('date').max=dateAdd(state.date,60);$('date').value=state.date;await Promise.all([loadSlots(),loadBookings(),loadCredits()]);}catch(err){msg(err.message,true);}finally{loading(false);}});
+  $('signout').addEventListener('click',()=>{state.token='';state.client=null;state.editingId=null;state.hour=null;state.creditsRemaining=0;$('code').value='';show('phoneView');});
+  async function loadCredits(){const r=await call('getMyCredits',state.token);state.creditsRemaining=r.remaining;renderCredits();refreshSummary();}
+  function renderCredits(){$('creditCount').textContent=state.creditsRemaining;}
+  function activateTab(which){$('bookTab').classList.toggle('active',which==='book');$('myTab').classList.toggle('active',which==='my');$('bookPanel').classList.toggle('hidden',which!=='book');$('myPanel').classList.toggle('hidden',which!=='my');clearMsg();}
+  $('bookTab').addEventListener('click',()=>activateTab('book'));
+  $('myTab').addEventListener('click',async()=>{activateTab('my');await loadBookings();});
+  function drawDays(){const host=$('daybar');host.replaceChildren();for(let i=0;i<7;i++){const d=dateAdd(state.date,i);const btn=document.createElement('button');btn.type='button';btn.className='day'+(d===state.date?' active':'');const weekday=new Date(d+'T12:00:00Z').toLocaleDateString('en-MY',{timeZone:'UTC',weekday:'short'});btn.innerHTML='<span>'+weekday+'</span><b>'+Number(d.slice(-2))+'</b>';btn.addEventListener('click',()=>{$('date').value=d;state.date=d;loadSlots();});host.appendChild(btn);}}
+  $('date').addEventListener('change',()=>{state.date=$('date').value;loadSlots();});
+  async function loadSlots(){state.hour=null;refreshSummary();drawDays();$('slots').replaceChildren();$('slotStatus').textContent='Checking calendar availability…';try{const availability=await call('getAvailability',state.date);$('slotStatus').textContent=availability.reason||'Select your preferred hour.';for(const s of availability.slots){const b=document.createElement('button');b.type='button';b.className='slot';b.textContent=s.label;b.addEventListener('click',()=>{state.hour=s.hour;[...$('slots').children].forEach(x=>x.classList.remove('active'));b.classList.add('active');refreshSummary();});$('slots').appendChild(b);}}catch(err){$('slotStatus').textContent=err.message;msg(err.message,true);}}
+  function refreshSummary(){const editing=!!state.editingId;$('summaryEyebrow').textContent=editing?'RESCHEDULE SESSION':'YOUR SESSION';$('selectedTime').textContent=state.hour===null?'Select a time':fmtHour(state.hour)+' – '+fmtHour(state.hour+1);$('selectedDate').textContent=state.hour===null?'Choose an available hour.':niceDate(state.date);$('confirmBooking').textContent=editing?'Confirm new time →':'Confirm booking →';$('confirmBooking').disabled=state.working||state.hour===null||(!editing&&state.creditsRemaining<1);$('stopEdit').classList.toggle('hidden',!editing);}
+  $('stopEdit').addEventListener('click',()=>{state.editingId=null;refreshSummary();});
+  $('confirmBooking').addEventListener('click',async()=>{if(state.hour===null||state.working)return;loading(true);try{const result=state.editingId?await call('rescheduleBooking',state.token,state.editingId,state.date,state.hour):await call('makeBooking',state.token,state.date,state.hour);state.editingId=null;state.hour=null;refreshSummary();await Promise.all([loadSlots(),loadBookings(),loadCredits()]);activateTab('my');msg(result.message+' Email notifications have been requested for you and Coach Aimi.');}catch(err){msg(err.message,true);await loadSlots();}finally{loading(false);}});
+  async function loadBookings(){const host=$('myBookings');host.textContent='Loading sessions…';try{const rows=await call('getMyBookings',state.token);host.replaceChildren();if(!rows.length){const p=document.createElement('p');p.className='hint';p.textContent='No sessions yet. Book your first training hour!';host.appendChild(p);return;}for(const b of rows){const card=document.createElement('article');card.className='bookcard';const left=document.createElement('div');const badge=document.createElement('span');badge.className='pill'+(b.status==='CANCELLED'?' cancelled':'');badge.textContent=b.status;const label=document.createElement('strong');label.textContent=niceDate(b.date);const time=document.createElement('small');time.textContent=b.label+' · Coach Aimi';left.append(badge,label,time);const actions=document.createElement('div');actions.className='actions';if(b.canEdit){const edit=document.createElement('button');edit.className='secondary';edit.textContent='Reschedule';edit.onclick=()=>{state.editingId=b.id;state.date=b.date;$('date').value=b.date;activateTab('book');loadSlots();refreshSummary();};const cancel=document.createElement('button');cancel.className='secondary';cancel.textContent='Cancel';cancel.onclick=async()=>{if(!confirm('Cancel your session on '+niceDate(b.date)+' at '+b.label+'?'))return;try{await call('cancelBooking',state.token,b.id);await Promise.all([loadBookings(),loadCredits()]);msg('Session cancelled. One credit is available again. Notification emails have been requested.');}catch(err){msg(err.message,true);}};actions.append(edit,cancel);}else if(b.status==='CONFIRMED'){const note=document.createElement('small');note.textContent='Changes closed (under 24 hours)';actions.appendChild(note);}card.append(left,actions);host.appendChild(card);}}catch(err){host.textContent='Could not load bookings.';msg(err.message,true);}}
+</script>
 </body>
 </html>
