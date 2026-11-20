@@ -77,3 +77,10 @@
 ## Simple coach access (November 2026)
 
 The GitHub Pages **Coach Dashboard** button now opens a Google Drive search for the private **Coach Aimi — PT Booking Control Panel** spreadsheet, rather than the unreliable custom Apps Script admin login. Sign in to the Google account that owns or can edit the spreadsheet; Google Sheets access control protects the clients' personal data. Choose the spreadsheet from the search results, then edit the **Clients**, **Schedule**, **Calendars**, and **Settings** tabs. The Client Login link remains separate. A direct sheet URL can replace the search link once the sheet URL is known. The older admin.html and its server methods remain in the repository but are not used by the main Coach Dashboard button.
+
+
+## Coach email-entry dashboard
+
+The Coach Login homepage button opens the base Apps Script /exec URL (without page query parameters). Enter the coach email from Settings to open the dashboard with clients, credits, calendars, schedule and upcoming bookings. There is no OTP/password. **This is not secure authentication: anyone who knows the email can access personal client information. Avoid using real client records until proper identity checks are configured.**
+
+Paste the latest apps-script/Code.gs into Apps Script and Deploy > Manage deployments > Edit > New version > Deploy. Keep the same web-app URL and existing Sheet.
