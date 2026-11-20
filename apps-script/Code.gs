@@ -25,17 +25,14 @@ const APP = Object.freeze({
  * Backend operations run through Google's supported google.script.run API.
  */
 function doGet(e) {
-  const page = e && e.parameter && e.parameter.page;
-  if (page === 'admin') {
-    return HtmlService.createHtmlOutput(COACH_ADMIN_PAGE_)
-      .setTitle('Coach Aimi — Coach Admin');
-  }
+  // Coach login is the default /exec page so it does not depend on URL parameters.
+  const page = e && e.parameter && (e.parameter.page || e.parameter.view);
   if (page === 'client') {
     return HtmlService.createHtmlOutput(COACH_CLIENT_PAGE_)
       .setTitle('Coach Aimi — Client Booking');
   }
-  return HtmlService.createHtmlOutput('<div style="font-family:system-ui;padding:40px;max-width:600px;margin:auto"><h1>Coach Aimi PT Booking</h1><p>Use the booking website to sign in.</p><p><a href="https://aimi-keboon.github.io/coach-aimi-pt-booking/" target="_top">Open booking website</a></p></div>')
-    .setTitle('Coach Aimi PT Booking');
+  return HtmlService.createHtmlOutput(COACH_ADMIN_PAGE_)
+    .setTitle('Coach Aimi — Coach Admin');
 }
 
 /** Editor Run menu entry point. The setup helper stays private to the web app. */
@@ -144,41 +141,19 @@ function auditBookings_() {
  * only to CoachEmail from the private Settings sheet. No admin passwords/tokens go
  * into public GitHub Pages files.
  */
-function requestAdminCode() {
-  const email = String(settings_().CoachEmail || '').trim();
-  if (!/^\S+@\S+\.\S+$/.test(email)) throw new Error('Set CoachEmail in the Settings sheet first.');
-  const cache = CacheService.getScriptCache();
-  const limiter = 'admin-rate';
-  const hits = Number(cache.get(limiter) || 0);
-  if (hits >= 3) return {message: 'If coach login is available, a code has been requested. Try again later if needed.'};
-  cache.put(limiter, String(hits + 1), 900);
-  const code = String(parseInt(Utilities.getUuid().replace(/-/g, '').slice(0, 8), 16) % 1000000).padStart(6, '0');
-  cache.put('admin-otp', JSON.stringify({hash: hash_('coach-admin:' + code), attempts: 0}), 300);
-  MailApp.sendEmail({
-    to: email,
-    subject: 'Coach Aimi — admin login code',
-    body: 'Your Coach Admin sign-in code is ' + code + '. It expires in 5 minutes. Never share it.\n\nIf you did not request this, ignore this email.',
-    name: 'Coach Aimi Booking', replyTo: String(settings_().ReplyToEmail || email)
-  });
-  return {message: 'A 6-digit login code was sent to your coach notification email.'};
-}
-
-function verifyAdminCode(inputCode) {
-  const cache = CacheService.getScriptCache();
-  const stored = cache.get('admin-otp');
-  if (!stored || !/^\d{6}$/.test(String(inputCode))) throw new Error('Invalid or expired admin code.');
-  const record = JSON.parse(stored);
-  if (record.attempts >= 5) {cache.remove('admin-otp'); throw new Error('Too many attempts. Request a new code later.');}
-  if (record.hash !== hash_('coach-admin:' + String(inputCode))) {
-    record.attempts++;
-    if (record.attempts >= 5) cache.remove('admin-otp');
-    else cache.put('admin-otp', JSON.stringify(record), 300);
-    throw new Error('Invalid or expired admin code.');
-  }
-  cache.remove('admin-otp');
+/**
+ * Email-only coach access, as requested. The email must match CoachEmail in Settings.
+ * CAUTION: This is NOT identity verification: anyone who knows this address can get access.
+ * Use only if you knowingly accept this privacy risk.
+ */
+function adminLogin(emailInput) {
+  const supplied = String(emailInput || '').trim().toLowerCase();
+  const coach = String(settings_().CoachEmail || '').trim().toLowerCase();
+  if (!/^\S+@\S+\.\S+$/.test(coach)) throw new Error('CoachEmail is not configured in Settings.');
+  if (supplied !== coach) throw new Error('Email not recognized.');
   const token = Utilities.getUuid().replace(/-/g, '') + Utilities.getUuid().replace(/-/g, '');
-  cache.put('admin-session-' + hash_(token).slice(0, 48), 'coach', 21600);
-  return {token, email: settings_().CoachEmail};
+  CacheService.getScriptCache().put('admin-session-' + hash_(token).slice(0, 48), 'coach', APP.SESSION_TTL);
+  return {token, email: coach};
 }
 
 function requireAdmin_(token) {
@@ -205,7 +180,17 @@ function adminGetData(token) {
   const calendars = values_(APP.CALENDARS).filter(r => r[0]).map(r => ({
     id: String(r[0]).trim(), label: String(r[1] || ''), enabled: enabled_(r[2])
   }));
-  return {clients, calendars, destinationId, sheetUrl: spreadsheet_().getUrl(),
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const config = schedule_();
+  const schedule = days.map(day => ({
+    day, open: !!config[day.toLowerCase()].open,
+    first: config[day.toLowerCase()].first, last: config[day.toLowerCase()].last
+  }));
+  const upcoming = bookingRows_()
+    .filter(b => b.status === 'CONFIRMED' && dateHour_(b.date,b.hour).getTime() > Date.now())
+    .sort((a,b) => a.date.localeCompare(b.date) || a.hour-b.hour).slice(0,25)
+    .map(b => ({name:b.name, date:b.date, time:fmtHour_(b.hour), hour:b.hour}));
+  return {clients, calendars, destinationId, schedule, upcoming, sheetUrl: spreadsheet_().getUrl(),
     adminEmail: settings_().CoachEmail};
 }
 
@@ -306,6 +291,33 @@ function adminSetCalendarEnabled(token, inputId, enabledInput) {
     sheet.getRange(index+2,3).setValue(enabled);
     SpreadsheetApp.flush();
     return {message: enabled ? 'Calendar enabled.' : 'Calendar disabled. Existing bookings remain unchanged.'};
+  } finally {lock.releaseLock();}
+}
+
+/**
+ * Update weekly availability in one operation, without altering existing bookings.
+ * Day names and hours are validated on the server.
+ */
+function adminSaveSchedule(token, submitted) {
+  requireAdmin_(token);
+  if (!Array.isArray(submitted) || submitted.length !== 7)
+    throw new Error('Please provide all seven days of the week.');
+  const names = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const values = names.map(day => {
+    const entry = submitted.find(x => x && x.day === day);
+    if (!entry) throw new Error('Missing schedule for ' + day);
+    const first = Number(entry.first), last = Number(entry.last);
+    if (!Number.isInteger(first) || !Number.isInteger(last) || first < 0 || first > 22 ||
+        last < first || last > 22)
+      throw new Error('Invalid working hours for ' + day + '. Latest start must be 10 PM or earlier.');
+    return [day, entry.open === true, first, last];
+  });
+  const lock = LockService.getScriptLock();
+  lock.waitLock(25000);
+  try {
+    tab_(APP.SCHEDULE).getRange(2, 1, 7, 4).setValues(values);
+    SpreadsheetApp.flush();
+    return {message:'Schedule updated. Existing confirmed bookings remain valid.'};
   } finally {lock.releaseLock();}
 }
 
