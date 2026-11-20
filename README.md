@@ -72,3 +72,8 @@
 **After changing Code.gs:** Save it in the Apps Script editor, then go to **Deploy → Manage deployments → Edit (pencil) → Version: New version → Deploy**. The /exec endpoint continues using the old code until you redeploy. Keep the existing /exec URL.
 
 **Security note:** This uses email OTP and a six-hour server-side admin session; never put a static admin password in a public GitHub Pages file. Treat the coach email inbox as sensitive because possession of a code allows administrative access. Test direct Apps Script login and booking workflows before going live.
+
+
+## Simple coach access (November 2026)
+
+The GitHub Pages **Coach Dashboard** button now opens a Google Drive search for the private **Coach Aimi — PT Booking Control Panel** spreadsheet, rather than the unreliable custom Apps Script admin login. Sign in to the Google account that owns or can edit the spreadsheet; Google Sheets access control protects the clients' personal data. Choose the spreadsheet from the search results, then edit the **Clients**, **Schedule**, **Calendars**, and **Settings** tabs. The Client Login link remains separate. A direct sheet URL can replace the search link once the sheet URL is known. The older admin.html and its server methods remain in the repository but are not used by the main Coach Dashboard button.
