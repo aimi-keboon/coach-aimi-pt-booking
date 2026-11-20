@@ -160,7 +160,7 @@ function auditBookings_() {
  */
 function requestAdminCode() {
   const email = String(settings_().CoachEmail || '').trim();
-  if (!/^\\S+@\\S+\\.\\S+$/.test(email)) throw new Error('Set CoachEmail in the Settings sheet first.');
+  if (!/^\S+@\S+\.\S+$/.test(email)) throw new Error('Set CoachEmail in the Settings sheet first.');
   const cache = CacheService.getScriptCache();
   const limiter = 'admin-rate';
   const hits = Number(cache.get(limiter) || 0);
@@ -171,7 +171,7 @@ function requestAdminCode() {
   MailApp.sendEmail({
     to: email,
     subject: 'Coach Aimi — admin login code',
-    body: 'Your Coach Admin sign-in code is ' + code + '. It expires in 5 minutes. Never share it.\\n\\nIf you did not request this, ignore this email.',
+    body: 'Your Coach Admin sign-in code is ' + code + '. It expires in 5 minutes. Never share it.\n\nIf you did not request this, ignore this email.',
     name: 'Coach Aimi Booking', replyTo: String(settings_().ReplyToEmail || email)
   });
   return {message: 'A 6-digit login code was sent to your coach notification email.'};
@@ -180,7 +180,7 @@ function requestAdminCode() {
 function verifyAdminCode(inputCode) {
   const cache = CacheService.getScriptCache();
   const stored = cache.get('admin-otp');
-  if (!stored || !/^\\d{6}$/.test(String(inputCode))) throw new Error('Invalid or expired admin code.');
+  if (!stored || !/^\d{6}$/.test(String(inputCode))) throw new Error('Invalid or expired admin code.');
   const record = JSON.parse(stored);
   if (record.attempts >= 5) {cache.remove('admin-otp'); throw new Error('Too many attempts. Request a new code later.');}
   if (record.hash !== hash_('coach-admin:' + String(inputCode))) {
@@ -232,7 +232,7 @@ function adminSaveClient(token, data) {
   const active = data.active === true;
   const initialCredits = Number(data.initialCredits || 0);
   if (!name || name.length > 100 || /^[=+@-]/.test(name)) throw new Error('Enter a valid client name.');
-  if (email.length > 200 || !/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$/.test(email) || /^[=+@-]/.test(email))
+  if (email.length > 200 || !/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(email) || /^[=+@-]/.test(email))
     throw new Error('Enter a valid client email.');
   if (!Number.isSafeInteger(initialCredits) || initialCredits < 0 || initialCredits > 10000)
     throw new Error('Starting credits must be between 0 and 10,000.');
@@ -281,7 +281,7 @@ function adminAddCalendar(token, inputId, inputLabel) {
   requireAdmin_(token);
   const id = String(inputId || '').trim();
   const label = String(inputLabel || '').trim();
-  if (!id || id.length > 254 || /\\s/.test(id) || !id.includes('@'))
+  if (!id || id.length > 254 || /\s/.test(id) || !id.includes('@'))
     throw new Error('Enter a valid Calendar ID. An email works for an accessible primary Google Calendar.');
   if (label.length > 80 || /^[=+@-]/.test(label)) throw new Error('Enter a valid calendar label.');
   const cal = CalendarApp.getCalendarById(id);
